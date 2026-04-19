@@ -18,33 +18,31 @@
         <!-- CAMERA -->
         <a-entity id="camera" camera look-controls position="0 1.6 0"></a-entity>
 
-        <!-- RIGHT CONTROLLER -->
-        <a-entity
-          id="rightHand"
-          laser-controls="hand: right"
-          raycaster="objects: .teleportable"
-          teleport-controls="
-            cameraRig: #rig;
-            teleportOrigin: #camera;
-            collisionEntities: .teleportable;
-            startEvents: triggerdown;
-            endEvents: triggerup;
-            curveShootingSpeed: 15;
-            fadeDuration: 200;">
-        </a-entity>
-
-        <!-- LEFT CONTROLLER -->
-        <a-entity
-          id="leftHand"
-          laser-controls="hand: left"
-          raycaster="objects: .teleportable"
-          teleport-controls="
-            cameraRig: #rig;
-            teleportOrigin: #camera;
-            collisionEntities: .teleportable;
-            startEvents: triggerdown;
-            endEvents: triggerup;">
-        </a-entity>
+        <!-- RIGHT HAND (robust teleport) -->
+          <a-entity
+            id="rightHand"
+            laser-controls="hand: right"
+            raycaster="objects: .teleportable"
+            teleport-controls="
+              cameraRig: #rig;
+              teleportOrigin: #camera;
+              collisionEntities: .teleportable;
+              button: trigger;
+              curveShootingSpeed: 15;
+              fadeDuration: 200;">
+          </a-entity>
+          
+          <!-- LEFT HAND -->
+          <a-entity
+            id="leftHand"
+            laser-controls="hand: left"
+            raycaster="objects: .teleportable"
+            teleport-controls="
+              cameraRig: #rig;
+              teleportOrigin: #camera;
+              collisionEntities: .teleportable;
+              button: trigger;">
+          </a-entity>
 
       </a-entity>
 
