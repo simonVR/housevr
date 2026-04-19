@@ -4,65 +4,68 @@
     <meta charset="utf-8">
     <title>VR House</title>
 
-    <!-- A-Frame (current stable) -->
     <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
-
-    <!-- Extras (movement) -->
     <script src="https://cdn.jsdelivr.net/npm/aframe-extras@7.0.0/dist/aframe-extras.min.js"></script>
-
-    <!-- Teleport controls (maintained fork) -->
     <script src="https://cdn.jsdelivr.net/gh/c-frame/aframe-teleport-controls@v0.3.1/dist/aframe-teleport-controls.min.js"></script>
   </head>
 
   <body>
-    <a-scene
-      renderer="colorManagement: true"
-      vr-mode-ui="enterVRButton: true"
-    >
+    <a-scene renderer="colorManagement: true">
 
       <!-- CAMERA RIG -->
       <a-entity id="rig" position="0 0 3">
 
-        <!-- Camera -->
+        <!-- CAMERA -->
+        <a-entity id="camera" camera look-controls position="0 1.6 0"></a-entity>
+
+        <!-- RIGHT CONTROLLER -->
         <a-entity
-          id="camera"
-          camera
-          look-controls
-          position="0 1.6 0">
+          id="rightHand"
+          laser-controls="hand: right"
+          raycaster="objects: .teleportable"
+          teleport-controls="
+            cameraRig: #rig;
+            teleportOrigin: #camera;
+            collisionEntities: .teleportable;
+            startEvents: triggerdown;
+            endEvents: triggerup;
+            curveShootingSpeed: 15;
+            fadeDuration: 200;">
+        </a-entity>
+
+        <!-- LEFT CONTROLLER -->
+        <a-entity
+          id="leftHand"
+          laser-controls="hand: left"
+          raycaster="objects: .teleportable"
+          teleport-controls="
+            cameraRig: #rig;
+            teleportOrigin: #camera;
+            collisionEntities: .teleportable;
+            startEvents: triggerdown;
+            endEvents: triggerup;">
         </a-entity>
 
       </a-entity>
 
-      <!-- RIGHT CONTROLLER (teleport) -->
-      <a-entity
-        laser-controls="hand: right"
-        raycaster="objects: .floor"
-        teleport-controls="
-          cameraRig: #rig;
-          teleportOrigin: #camera;
-          collisionEntities: .floor;
-          curveShootingSpeed: 15;
-          fadeDuration: 200">
-      </a-entity>
-
-      <!-- LEFT CONTROLLER (optional teleport) -->
-      <a-entity
-        laser-controls="hand: left"
-        raycaster="objects: .floor"
-        teleport-controls="
-          cameraRig: #rig;
-          teleportOrigin: #camera;
-          collisionEntities: .floor;">
-      </a-entity>
-
-      <!-- FLOOR (IMPORTANT FOR TELEPORT) -->
+      <!-- TELEPORT FLOOR (INVISIBLE + LOWERED slightly) -->
       <a-plane
-        class="floor"
+        class="teleportable"
         rotation="-90 0 0"
+        position="0 -0.01 0"
         width="50"
         height="50"
-        color="#dddddd">
+        material="opacity: 0; transparent: true">
       </a-plane>
+
+      <!-- TELEPORT MARKER -->
+      <a-circle
+        id="teleportMarker"
+        radius="0.2"
+        rotation="-90 0 0"
+        color="red"
+        visible="false">
+      </a-circle>
 
       <!-- YOUR MODEL -->
       <a-entity
@@ -74,9 +77,28 @@
       <a-light type="ambient" intensity="0.5"></a-light>
       <a-light type="directional" position="5 10 5" intensity="1"></a-light>
 
-      <!-- SKY -->
       <a-sky color="#e6f2ff"></a-sky>
 
     </a-scene>
+
+    <script>
+      const marker = document.getElementById('teleportMarker');
+
+      // Show red marker where teleport ray hits
+      document.querySelectorAll('[teleport-controls]').forEach(ctrl => {
+        ctrl.addEventListener('teleportstart', function (e) {
+          if (e.detail && e.detail.intersection) {
+            const point = e.detail.intersection.point;
+            marker.setAttribute('position', point);
+            marker.setAttribute('visible', true);
+          }
+        });
+
+        ctrl.addEventListener('teleportend', function () {
+          marker.setAttribute('visible', false);
+        });
+      });
+    </script>
+
   </body>
 </html>
