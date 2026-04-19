@@ -1,102 +1,85 @@
-<!DOCTYPE html>
-<html>
-  <head>
-    <meta charset="utf-8">
-    <title>VR House</title>
+<a-scene>
 
-    <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/aframe-extras@7.0.0/dist/aframe-extras.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/gh/c-frame/aframe-teleport-controls@v0.3.1/dist/aframe-teleport-controls.min.js"></script>
-  </head>
+  <!-- CAMERA RIG -->
+  <a-entity id="rig" position="0 0 3">
+    <a-entity id="camera" camera look-controls position="0 1.6 0"></a-entity>
 
-  <body>
-    <a-scene renderer="colorManagement: true">
+    <!-- RIGHT HAND -->
+    <a-entity
+      id="rightHand"
+      laser-controls="hand: right"
+      raycaster="objects: .teleportable; far: 20">
+    </a-entity>
 
-      <!-- CAMERA RIG -->
-      <a-entity id="rig" position="0 0 3">
+    <!-- LEFT HAND -->
+    <a-entity
+      id="leftHand"
+      laser-controls="hand: left"
+      raycaster="objects: .teleportable; far: 20">
+    </a-entity>
+  </a-entity>
 
-        <!-- CAMERA -->
-        <a-entity id="camera" camera look-controls position="0 1.6 0"></a-entity>
+  <!-- FLOOR (invisible, slightly lowered) -->
+  <a-plane
+    class="teleportable"
+    rotation="-90 0 0"
+    position="0 -0.01 0"
+    width="50"
+    height="50"
+    material="opacity: 0; transparent: true">
+  </a-plane>
 
-        <!-- RIGHT HAND (robust teleport) -->
-          <a-entity
-            id="rightHand"
-            laser-controls="hand: right"
-            raycaster="objects: .teleportable"
-            teleport-controls="
-              cameraRig: #rig;
-              teleportOrigin: #camera;
-              collisionEntities: .teleportable;
-              button: trigger;
-              curveShootingSpeed: 15;
-              fadeDuration: 200;">
-          </a-entity>
-          
-          <!-- LEFT HAND -->
-          <a-entity
-            id="leftHand"
-            laser-controls="hand: left"
-            raycaster="objects: .teleportable"
-            teleport-controls="
-              cameraRig: #rig;
-              teleportOrigin: #camera;
-              collisionEntities: .teleportable;
-              button: trigger;">
-          </a-entity>
+  <!-- TELEPORT MARKER -->
+  <a-circle
+    id="marker"
+    radius="0.2"
+    rotation="-90 0 0"
+    color="red"
+    visible="false">
+  </a-circle>
 
-      </a-entity>
+  <!-- MODEL -->
+  <a-entity gltf-model="HouseBefore.glb"></a-entity>
 
-      <!-- TELEPORT FLOOR (INVISIBLE + LOWERED slightly) -->
-      <a-plane
-        class="teleportable"
-        rotation="-90 0 0"
-        position="0 -0.01 0"
-        width="50"
-        height="50"
-        material="opacity: 0; transparent: true">
-      </a-plane>
+  <!-- LIGHTING -->
+  <a-light type="ambient" intensity="0.5"></a-light>
+  <a-light type="directional" position="5 10 5"></a-light>
 
-      <!-- TELEPORT MARKER -->
-      <a-circle
-        id="teleportMarker"
-        radius="0.2"
-        rotation="-90 0 0"
-        color="red"
-        visible="false">
-      </a-circle>
+  <a-sky color="#e6f2ff"></a-sky>
 
-      <!-- YOUR MODEL -->
-      <a-entity
-        gltf-model="HouseBefore.glb"
-        position="0 0 0">
-      </a-entity>
+</a-scene>
 
-      <!-- LIGHTING -->
-      <a-light type="ambient" intensity="0.5"></a-light>
-      <a-light type="directional" position="5 10 5" intensity="1"></a-light>
+<script>
+  const rig = document.getElementById('rig');
+  const marker = document.getElementById('marker');
+  const rightHand = document.getElementById('rightHand');
 
-      <a-sky color="#e6f2ff"></a-sky>
+  let lastHit = null;
 
-    </a-scene>
+  // Track where the laser is pointing
+  rightHand.addEventListener('raycaster-intersection', function (e) {
+    const intersection = e.detail.intersections[0];
+    if (intersection) {
+      lastHit = intersection.point;
 
-    <script>
-      const marker = document.getElementById('teleportMarker');
+      marker.setAttribute('position', lastHit);
+      marker.setAttribute('visible', true);
+    }
+  });
 
-      // Show red marker where teleport ray hits
-      document.querySelectorAll('[teleport-controls]').forEach(ctrl => {
-        ctrl.addEventListener('teleportstart', function (e) {
-          if (e.detail && e.detail.intersection) {
-            const point = e.detail.intersection.point;
-            marker.setAttribute('position', point);
-            marker.setAttribute('visible', true);
-          }
-        });
+  rightHand.addEventListener('raycaster-intersection-cleared', function () {
+    marker.setAttribute('visible', false);
+    lastHit = null;
+  });
 
-        ctrl.addEventListener('teleportend', function () {
-          marker.setAttribute('visible', false);
-        });
-      });
-    </script>
+  // TELEPORT on trigger (WebXR "select")
+  rightHand.addEventListener('selectstart', function () {
+    if (!lastHit) return;
 
-  </body>
-</html>
+    rig.setAttribute('position', {
+      x: lastHit.x,
+      y: 0,
+      z: lastHit.z
+    });
+  });
+</script>
