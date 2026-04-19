@@ -2,83 +2,81 @@
 <html>
   <head>
     <meta charset="utf-8">
+    <title>VR House</title>
+
+    <!-- A-Frame (current stable) -->
     <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
+
+    <!-- Extras (movement) -->
     <script src="https://cdn.jsdelivr.net/npm/aframe-extras@7.0.0/dist/aframe-extras.min.js"></script>
+
+    <!-- Teleport controls (maintained fork) -->
+    <script src="https://cdn.jsdelivr.net/gh/c-frame/aframe-teleport-controls@v0.3.1/dist/aframe-teleport-controls.min.js"></script>
   </head>
 
   <body>
-    <a-scene>
+    <a-scene
+      renderer="colorManagement: true"
+      vr-mode-ui="enterVRButton: true"
+    >
 
-      <!-- Camera rig (movement + teleport) -->
-      <a-entity id="rig" movement-controls="speed: 0.1">
-        <a-entity camera position="0 1.6 3" look-controls></a-entity>
+      <!-- CAMERA RIG -->
+      <a-entity id="rig" position="0 0 3">
+
+        <!-- Camera -->
+        <a-entity
+          id="camera"
+          camera
+          look-controls
+          position="0 1.6 0">
+        </a-entity>
+
       </a-entity>
 
-      <!-- Controllers -->
-      <a-entity laser-controls="hand: right"></a-entity>
-      <a-entity laser-controls="hand: left"></a-entity>
+      <!-- RIGHT CONTROLLER (teleport) -->
+      <a-entity
+        laser-controls="hand: right"
+        raycaster="objects: .floor"
+        teleport-controls="
+          cameraRig: #rig;
+          teleportOrigin: #camera;
+          collisionEntities: .floor;
+          curveShootingSpeed: 15;
+          fadeDuration: 200">
+      </a-entity>
 
-      <!-- Teleportable floor -->
-      <a-plane 
-        position="0 0 0" 
-        rotation="-90 0 0" 
-        width="50" 
-        height="50" 
-        color="#ccc">
+      <!-- LEFT CONTROLLER (optional teleport) -->
+      <a-entity
+        laser-controls="hand: left"
+        raycaster="objects: .floor"
+        teleport-controls="
+          cameraRig: #rig;
+          teleportOrigin: #camera;
+          collisionEntities: .floor;">
+      </a-entity>
+
+      <!-- FLOOR (IMPORTANT FOR TELEPORT) -->
+      <a-plane
+        class="floor"
+        rotation="-90 0 0"
+        width="50"
+        height="50"
+        color="#dddddd">
       </a-plane>
 
-      <!-- MODEL A (original layout) -->
-      <a-entity 
-        id="modelA"
-        gltf-model="HouseBefore.glb"
-        position="0 0 0"
-        visible="true">
+      <!-- YOUR MODEL -->
+      <a-entity
+        gltf-model="house.glb"
+        position="0 0 0">
       </a-entity>
 
-      <!-- MODEL B (modified layout) -->
-      <a-entity 
-        id="modelB"
-        gltf-model="HouseAfter.glb"
-        position="0 0 0"
-        visible="false">
-      </a-entity>
+      <!-- LIGHTING -->
+      <a-light type="ambient" intensity="0.5"></a-light>
+      <a-light type="directional" position="5 10 5" intensity="1"></a-light>
 
-      <!-- SUN LIGHT -->
-      <a-light 
-        type="directional" 
-        position="5 10 5" 
-        intensity="1.2">
-      </a-light>
-
-      <a-light type="ambient" intensity="0.4"></a-light>
-
-      <!-- Sky -->
+      <!-- SKY -->
       <a-sky color="#e6f2ff"></a-sky>
 
     </a-scene>
-
-    <script>
-      // Toggle models on controller button press
-      let showingA = true;
-
-      document.addEventListener('keydown', (e) => {
-        if (e.key === 'a' || e.key === 'x') toggleModels();
-      });
-
-      // Quest controller buttons
-      document.querySelector('a-scene').addEventListener('abuttondown', toggleModels);
-      document.querySelector('a-scene').addEventListener('xbuttondown', toggleModels);
-
-      function toggleModels() {
-        const modelA = document.getElementById('modelA');
-        const modelB = document.getElementById('modelB');
-
-        showingA = !showingA;
-
-        modelA.setAttribute('visible', showingA);
-        modelB.setAttribute('visible', !showingA);
-      }
-    </script>
-
   </body>
 </html>
